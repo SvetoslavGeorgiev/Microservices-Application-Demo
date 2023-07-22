@@ -6,7 +6,7 @@ namespace PlatformService
 
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -20,10 +20,11 @@ namespace PlatformService
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
+            builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             var app = builder.Build();
 
-            InMemoryDbPreparation.PrepPopulation(app);
+            await InMemoryDbPreparation.PrepPopulationAsync(app);
 
             if (app.Environment.IsDevelopment())
             {
