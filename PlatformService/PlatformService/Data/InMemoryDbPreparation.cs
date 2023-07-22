@@ -4,15 +4,17 @@
 
     public static class InMemoryDbPreparation
     {
-        public static async Task PrepPopulation(WebApplication app)
+        public static async Task PrepPopulationAsync(WebApplication app)
         {
             using (var serviceScope = app.Services.CreateScope())
             {
-                await SeedData(serviceScope.ServiceProvider.GetService<AppDbContext>());
+#pragma warning disable CS8604 // Possible null reference argument.
+                await SeedDataAsync(serviceScope.ServiceProvider.GetService<AppDbContext>());
+#pragma warning restore CS8604 // Possible null reference argument.
             }
         }
 
-        private static async Task SeedData(AppDbContext dbContext)
+        private static async Task SeedDataAsync(AppDbContext dbContext)
         {
             if (!dbContext.Platforms.Any())
             {
