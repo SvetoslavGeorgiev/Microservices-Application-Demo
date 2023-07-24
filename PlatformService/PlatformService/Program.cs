@@ -3,6 +3,7 @@ namespace PlatformService
 {
     using Microsoft.EntityFrameworkCore;
     using PlatformService.Data;
+    using PlatformService.SyncDataServices.Http;
 
     public class Program
     {
@@ -10,9 +11,23 @@ namespace PlatformService
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            var connectionString = builder.Configuration.GetConnectionString("PlatformsConnection");
+
 
             builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("InMemory"));
+            {
+                if (builder.Environment.IsDevelopment())
+                {
+                    Console.WriteLine("--> Using SqlServer Db");
+                    options.UseSqlServer(connectionString);
+                }
+                else if (builder.Environment.IsProduction())
+                {
+                    Console.WriteLine("--> Using InMemory Db");
+                    options.UseInMemoryDatabase("InMemory");
+                }
+            });
+
 
             builder.Services.AddControllers();
 
@@ -20,11 +35,14 @@ namespace PlatformService
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
+
+            builder.Services.AddHttpClient<ICommandDataClient, CommandDataClient>();
+
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             var app = builder.Build();
 
-            await InMemoryDbPreparation.PrepPopulationAsync(app);
+            await DbPreparation.PrepPopulationAsync(app);
 
             if (app.Environment.IsDevelopment())
             {
@@ -32,7 +50,8 @@ namespace PlatformService
                 app.UseSwaggerUI();
             }
 
-            app.UseHttpsRedirection();
+
+            //app.UseHttpsRedirection();
 
             app.UseAuthorization();
 
