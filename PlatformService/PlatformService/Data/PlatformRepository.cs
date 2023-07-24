@@ -26,7 +26,7 @@
             => await dbContext.Platforms.ToListAsync();
 
         public async Task<Platform> GetPlatformById(int id)
-            => await dbContext.Platforms.FirstOrDefaultAsync();
+            => await dbContext.Platforms.FirstOrDefaultAsync(p => p.Id.Equals(id));
 
         public async Task<bool> SaveChanges() => await dbContext.SaveChangesAsync() >= 0;
 
