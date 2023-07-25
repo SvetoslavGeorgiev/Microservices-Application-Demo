@@ -10,6 +10,8 @@
         {
             CreateMap<Platform, PlatformReadDto>().ReverseMap();
             CreateMap<Platform, PlatformCreateDto>().ReverseMap();
+            CreateMap<PlatformReadDto, PlatformPublishedDto>()
+                .ForMember(x => x.ExternalId, opt => opt.MapFrom(x => x.Id));
         }
     }
 }

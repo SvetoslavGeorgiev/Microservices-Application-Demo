@@ -2,6 +2,7 @@
 {
     using AutoMapper;
     using Microsoft.AspNetCore.Mvc;
+    using PlatformService.AsyncDataServices;
     using PlatformService.Data;
     using PlatformService.Dtos;
     using PlatformService.Models;
@@ -14,15 +15,18 @@
         private readonly IPlatformRepository repository;
         private readonly IMapper mapper;
         private readonly ICommandDataClient commandDataClient;
+        private readonly IMessageBusClient messageBusClient;
 
         public PlatformController(
             IPlatformRepository _repository,
             IMapper _mapper,
-            ICommandDataClient _commandDataClient)
+            ICommandDataClient _commandDataClient,
+            IMessageBusClient _messageBusClient)
         {
             repository = _repository;
             mapper = _mapper;
             commandDataClient = _commandDataClient;
+            messageBusClient = _messageBusClient;
         }
 
         [HttpGet]
@@ -57,15 +61,9 @@
         public async Task<IActionResult> CreatePlatform(PlatformCreateDto platformCreateDto)
         {
             var platformModel = mapper.Map<Platform>(platformCreateDto);
-
-            //this is to check if going to return correct Id if I swap the database from inMemory to SQL
-
-            //var platdormId = await repository.CreatePlatform(platformModel);
             await repository.CreatePlatform(platformModel);
 
             await repository.SaveChanges();
-            //var platformItems = await repository.GetPlatformById(platdormId);
-            //var model = mapper.Map<PlatformReadDto>(platformItems);
 
             var platdormReadDto = mapper.Map<PlatformReadDto>(platformModel);
 
@@ -75,7 +73,18 @@
             }
             catch (Exception e)
             {
-                Console.WriteLine($"--> Cloud not send synchronously: {e.Message}");
+                Console.WriteLine($"--> Couldn't send synchronously: {e.Message}");
+            }
+
+            try
+            {
+                var platformPubleshtDto = mapper.Map<PlatformPublishedDto>(platdormReadDto);
+                platformPubleshtDto.Event = "Platform_Published";
+                await messageBusClient.PublishNewPlatform(platformPubleshtDto);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"--> Couldn't send asynchronously: {e.Message}");
             }
 
             return CreatedAtAction(nameof(GetPlatformById), new PlatformReadDto { Id = platdormReadDto.Id }, platdormReadDto);

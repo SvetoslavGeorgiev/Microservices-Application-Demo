@@ -1,7 +1,7 @@
-
 namespace PlatformService
 {
     using Microsoft.EntityFrameworkCore;
+    using PlatformService.AsyncDataServices;
     using PlatformService.Data;
     using PlatformService.SyncDataServices.Http;
 
@@ -18,13 +18,13 @@ namespace PlatformService
             {
                 if (builder.Environment.IsDevelopment())
                 {
-                    Console.WriteLine("--> Using SqlServer Db");
-                    options.UseSqlServer(connectionString);
+                    Console.WriteLine("--> Using InMemory Db");
+                    options.UseInMemoryDatabase("InMemory");
                 }
                 else if (builder.Environment.IsProduction())
                 {
-                    Console.WriteLine("--> Using InMemory Db");
-                    options.UseInMemoryDatabase("InMemory");
+                    Console.WriteLine("--> Using SqlServer Db");
+                    options.UseSqlServer(connectionString);
                 }
             });
 
@@ -35,8 +35,8 @@ namespace PlatformService
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddScoped<IPlatformRepository, PlatformRepository>();
-
             builder.Services.AddHttpClient<ICommandDataClient, CommandDataClient>();
+            builder.Services.AddSingleton<IMessageBusClient, MessageBusClient>();
 
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 

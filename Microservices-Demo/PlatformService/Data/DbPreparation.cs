@@ -17,7 +17,7 @@
 
         private static async Task SeedDataAsync(AppDbContext dbContext, bool IsProduction)
         {
-            if (!IsProduction)
+            if (IsProduction)
             {
                 Console.WriteLine("--> Attempting to apply migrations....");
                 try
