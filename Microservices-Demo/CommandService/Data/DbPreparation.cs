@@ -1,5 +1,6 @@
 ﻿namespace CommandService.Data
 {
+    using CommandService.SyncDataServices.Grpc;
     using Microsoft.EntityFrameworkCore;
     using Models;
 
@@ -9,13 +10,23 @@
         {
             using (var serviceScope = app.Services.CreateScope())
             {
+                var grpcClient = serviceScope.ServiceProvider.GetService<IPlatformDataClient>();
 #pragma warning disable CS8604 // Possible null reference argument.
-                await SeedDataAsync(serviceScope.ServiceProvider.GetService<AppDbContext>(), app.Environment.IsProduction());
+                var platforms = await grpcClient!.ReturnAllPlatforms();
+                await SeedDataAsync(
+                    serviceScope.ServiceProvider.GetService<AppDbContext>(), 
+                    app.Environment.IsProduction(), 
+                    serviceScope.ServiceProvider.GetService<ICommandRepository>(), 
+                    platforms);
 #pragma warning restore CS8604 // Possible null reference argument.
             }
         }
 
-        private static async Task SeedDataAsync(AppDbContext dbContext, bool IsProduction)
+        private static async Task SeedDataAsync(
+            AppDbContext dbContext, 
+            bool IsProduction, 
+            ICommandRepository commandRepository, 
+            IEnumerable<Platform> platforms)
         {
             if (IsProduction)
             {
@@ -30,21 +41,15 @@
                 }
 
             }
-            if (!dbContext.Platforms.Any())
+            Console.WriteLine("Seeding new platforms...");
+
+            foreach (var plat in platforms)
             {
-                Console.WriteLine("--> Seeding Data");
-
-                dbContext.Platforms.AddRange(
-                    new Platform() { Name = "Dot Net", ExternalID = 1 },
-                    new Platform() { Name = "SQL Server Express", ExternalID = 2 },
-                    new Platform() { Name = "Kubernetis", ExternalID = 3 });
-
-
-                await dbContext.SaveChangesAsync();
-            }
-            else
-            {
-                Console.WriteLine("--> We already have data");
+                if (!commandRepository.IsExternalPlatformExists(plat.ExternalID).Result)
+                {
+                   await commandRepository.CreatePlatform(plat);
+                }
+                await commandRepository.SaveChanges();
             }
         }
     }

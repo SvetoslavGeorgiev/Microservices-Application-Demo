@@ -3,6 +3,7 @@ namespace CommandService
     using CommandService.AsyncDataServices;
     using CommandService.Data;
     using CommandService.EventProcessing;
+    using CommandService.SyncDataServices.Grpc;
     using Microsoft.EntityFrameworkCore;
 
     public class Program
@@ -35,6 +36,7 @@ namespace CommandService
             builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             builder.Services.AddScoped<ICommandRepository, CommandRepository>();
+            builder.Services.AddScoped<IPlatformDataClient, PlatformDataClient>();
             builder.Services.AddSingleton<IEventProcessor, EventProcessor>();
             builder.Services.AddHostedService<MessageBusSubscriber>();
 
@@ -45,6 +47,7 @@ namespace CommandService
 
             if (app.Environment.IsDevelopment())
             {
+                app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
