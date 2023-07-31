@@ -1,0 +1,39 @@
+﻿@model IEnumerable<PlatformsViewModel>
+
+@{
+    ViewBag.Title = "Platforms";
+}
+
+<style>
+.hoverme{
+  background-color: limegreen;
+}
+
+.hoverme:hover{
+  background-color: lime;
+  color: red;
+}
+</style>
+
+<h2 class="text-center">@ViewBag.Title</h2>
+<hr />
+
+<div class="text-center row">
+    @foreach (var platforms in Model)
+    {
+        <div class="card col-4" style="width: 20rem; margin-right: 7px; margin-bottom: 7px;">
+           <div class="card-body">
+                <h5 class="card-Name mt-1">@platforms.Name</h5>
+                <p class="mb-0">Publisher: @platforms.Publisher</p>
+                <p class="mb-0">Cost: @platforms.Cost</p>
+            </div>
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                 <div class="mb-3">
+                     <a asp-controller="Platforms" asp-action="EditPlatform" asp-route-soupId="@platforms.Id" class="fs-6 btn  hoverme mb-3 p-2">Редактирай</a>
+                </div>
+            }
+            
+        </div>
+    }
+</div>

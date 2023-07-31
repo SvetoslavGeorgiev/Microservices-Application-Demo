@@ -34,7 +34,7 @@
         [HttpPost]
         public async Task<IActionResult> TestInboundConnection()
         {
-            await Console.Out.WriteLineAsync("--> Inbound POST # Command Service");
+            Console.WriteLine("--> Inbound POST # Command Service");
 
             return Ok("Inbound test for the platforms Controller");
         }
